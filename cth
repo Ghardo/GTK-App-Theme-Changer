@@ -1,0 +1,43 @@
+#!/bin/bash
+DEFAULT_RCF="/usr/share/themes/ManjaroFlatLight/gtk-2.0/gtkrc"
+DEFAULT_GTH="ManjaroFlatLight"
+
+rcf=""
+gth=""
+
+set -- $(getopt p:n: "$@")
+while [ $# -gt 0 ]
+do
+    case "$1" in
+      -p)
+        rcf="${2}/gtk-2.0/gtkrc"; shift 2;;
+      -n)
+        gth=$2; shift 2;;
+      --) shift; break;;
+      esac
+done
+
+if [ -z "${rcf}" ] && [ -z "${gth}" ]; then
+  rcf=$DEFAULT_RCF
+  gth=$DEFAULT_GTH
+fi
+
+if [ -z "${gth}" ]; then
+  gth="$(basename $(realpath $(dirname ${rcf})/..))"
+fi
+
+if [ -z "${rcf}" ]; then
+  if [ -d "/usr/share/themes/${gth}/" ]; then
+    rcf="/usr/share/themes/${gth}/"
+  fi
+
+  if [ -d "~/.themes/${gth}/" ]; then
+    rcf="~/.themes/${gth}/"
+  fi
+fi
+
+if [ $(readlink ${0}) ]; then
+  GTK2_RC_FILES="${rcf}" GTK_THEME="${gth}" $(echo ${0##*/} | sed 's/-$//') $*
+else
+  GTK2_RC_FILES="${rcf}" GTK_THEME="${gth}" $*
+fi
